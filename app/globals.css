@@ -18,25 +18,18 @@ body {
   rgb(var(--background-start-rgb));
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-600;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #0c87f0, #9333ea);
 }
 
 .glass {
-  @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl;
-}
-
-.glass-dark {
-  @apply bg-gray-900/80 backdrop-blur-lg border border-gray-700/30 shadow-xl;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .animate-float {
@@ -49,17 +42,62 @@ body {
 }
 
 .stat-card {
-  @apply bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100;
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #f3f4f6;
+}
+
+.stat-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .btn-primary {
-  @apply bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl;
+  background: #0c87f0;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #006acd;
+  transform: scale(1.05);
 }
 
 .btn-secondary {
-  @apply bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-8 rounded-xl border border-gray-200 transition-all duration-300 transform hover:scale-105;
+  background: white;
+  color: #111827;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #f9fafb;
+  transform: scale(1.05);
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
 }
