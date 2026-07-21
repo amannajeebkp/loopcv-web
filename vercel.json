@@ -4,10 +4,6 @@
     {
       "src": "app/**/*.{js,ts,jsx,tsx,mdx}",
       "use": "@vercel/next"
-    },
-    {
-      "src": "app/api/**/*.{js,ts,jsx,tsx}",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -19,9 +15,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key",
-    "ANTHROPIC_API_KEY": "@anthropic-api-key"
-  }
+  ]
 }
