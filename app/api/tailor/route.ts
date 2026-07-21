@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-})
+import { generateJSON, generateText } from '@/lib/gemini'
 
 export async function POST(request: Request) {
   try {
@@ -14,16 +10,16 @@ export async function POST(request: Request) {
     }
 
     // Generate tailored CV
-    const cvResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert ATS resume optimizer. Return only valid JSON.',
-        },
-        {
-          role: 'user',
-          content: `Tailor this CV for the specific job. Rewrite summary, reorder experience bullets, optimize keywords for ATS. Keep all information truthful - only reorder and rephrase.
+    const tailoredCV = await generateJSON(
+      `Tailor this CV for the specific job posting. Return ONLY valid JSON with the same schema.
+
+INSTRUCTIONS:
+1. Rewrite summary to highlight relevant experience for THIS role
+2. Reorder and rewrite experience bullets to emphasize matching skills
+3. Adjust skills section to prioritize keywords from the job description
+4. Keep ALL information truthful - only reorder and rephrase, don't invent
+5. Ensure every bullet starts with a strong action verb
+6. Target: pass ATS screening AND impress human recruiters
 
 ORIGINAL CV:
 ${JSON.stringify(cvData, null, 2).slice(0, 8000)}
@@ -31,48 +27,36 @@ ${JSON.stringify(cvData, null, 2).slice(0, 8000)}
 JOB TITLE: ${jobTitle}
 COMPANY: ${jobCompany || ''}
 JOB DESCRIPTION:
-${(jobDescription || '').slice(0, 4000)}
-
-Return the tailored CV as JSON with same schema.`,
-        },
-      ],
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-    })
-
-    const tailoredCV = JSON.parse(cvResponse.choices[0].message.content || '{}')
+${(jobDescription || '').slice(0, 4000)}`
+    )
 
     // Generate cover letter
-    const clResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'Write a professional, tailored cover letter. Return only the cover letter text.',
-        },
-        {
-          role: 'user',
-          content: `Write a cover letter for this job application.
+    const coverLetter = await generateText(
+      `Write a professional, tailored cover letter for this job application.
+
+GUIDELINES:
+- 3-4 paragraphs maximum
+- Opening: Express genuine interest and mention the specific role
+- Middle: Connect your experience to their requirements (2-3 specific examples)
+- Closing: Express enthusiasm and call to action
+- Tone: Professional but personable, not generic
+- Length: 250-400 words
+- Do NOT use generic phrases like "I am writing to express my interest"
+- Be specific about WHY this company/role appeals to you
 
 CANDIDATE:
 Name: ${cvData.name}
 Title: ${cvData.tagline}
 Summary: ${cvData.summary}
-Skills: ${Object.values(cvData.skills || {}).flat().slice(0, 10).join(', ')}
+Key Skills: ${Object.values(cvData.skills || {}).flat().slice(0, 10).join(', ')}
 
 JOB:
 Title: ${jobTitle}
 Company: ${jobCompany || ''}
 Description: ${(jobDescription || '').slice(0, 3000)}
 
-Write 3-4 paragraphs. Be specific about WHY this company/role. No generic phrases.`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-    })
-
-    const coverLetter = clResponse.choices[0].message.content || ''
+Return ONLY the cover letter text, nothing else.`
+    )
 
     return NextResponse.json({ tailoredCV, coverLetter })
   } catch (error: any) {

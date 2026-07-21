@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-})
+import { generateJSON } from '@/lib/gemini'
 
 export async function POST(request: Request) {
   try {
@@ -13,29 +9,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'CV text is required' }, { status: 400 })
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert ATS resume optimizer. Return only valid JSON.',
-        },
-        {
-          role: 'user',
-          content: `Extract and optimize this CV for ATS. Return JSON with: name, tagline, contact (email, phone, location, linkedin, github, website), summary, experience (title, company, location, dates, bullets), education (degree, institution, dates), skills (languages, frameworks, tools, cloud, other), certifications, projects.
+    const cvData = await generateJSON(
+      `Extract and optimize this CV for ATS (Applicant Tracking System). Return ONLY valid JSON with this schema:
+
+{
+  "name": "Full Name",
+  "tagline": "Professional Title (e.g., Senior Software Engineer)",
+  "contact": {
+    "email": "",
+    "phone": "",
+    "location": "City, Country",
+    "linkedin": "",
+    "github": "",
+    "website": ""
+  },
+  "summary": "2-3 sentence professional summary with relevant keywords",
+  "experience": [
+    {
+      "title": "Job Title",
+      "company": "Company Name",
+      "location": "City, Country",
+      "dates": "Month YYYY – Month YYYY",
+      "bullets": ["Impact-driven bullet point with action verb + task + quantifiable result"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Degree Name",
+      "institution": "School/University",
+      "location": "City, Country",
+      "dates": "YYYY – YYYY",
+      "details": "GPA, honors, relevant coursework"
+    }
+  ],
+  "skills": {
+    "languages": ["Python", "JavaScript", "TypeScript"],
+    "frameworks": ["React", "Next.js", "Node.js"],
+    "tools": ["Docker", "Git", "AWS"],
+    "cloud": ["AWS", "GCP", "Azure"],
+    "other": ["Agile", "CI/CD", "TDD"]
+  },
+  "certifications": [{"name": "Cert Name", "issuer": "Issuer", "date": "YYYY"}],
+  "projects": [{"name": "Project Name", "description": "Brief description", "link": ""}]
+}
+
+RULES:
+- Rewrite experience bullet points to be impact-driven (action verb + task + quantifiable result)
+- Ensure skills include industry-standard ATS keywords
+- Make summary concise and keyword-rich
+- Standardize dates to "Month YYYY – Month YYYY" format
+- Keep ALL information truthful - do NOT invent experience
+- Every bullet must start with a strong action verb
+- Include 3-5 bullets per role maximum
 
 CV TEXT:
 ---
 ${cvText.slice(0, 12000)}
----`,
-        },
-      ],
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-    })
-
-    const content = response.choices[0].message.content
-    const cvData = JSON.parse(content || '{}')
+---`
+    )
 
     return NextResponse.json({ cvData })
   } catch (error: any) {
